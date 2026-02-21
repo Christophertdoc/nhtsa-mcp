@@ -140,9 +140,7 @@ class TestRatingsSearch:
         await ratings_search_tool(ctx, model_year=2020, make="Toyota", model="Camry")
 
         # Verify the cache now has the vehicle ID entries
-        cached, _ = await app_ctx.caches["ratings"].get_or_fetch(
-            "ratings_id:12345", lambda: None
-        )
+        cached, _ = await app_ctx.caches["ratings"].get_or_fetch("ratings_id:12345", lambda: None)
         assert cached["Results"][0]["OverallRating"] == "5"
 
 

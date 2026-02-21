@@ -43,9 +43,7 @@ class StubLLMProvider(LLMProvider):
             )
         return {"role": "assistant", "content": content}
 
-    def build_tool_results(
-        self, results: list[tuple[ToolCall, str, bool]]
-    ) -> list[dict[str, Any]]:
+    def build_tool_results(self, results: list[tuple[ToolCall, str, bool]]) -> list[dict[str, Any]]:
         tool_results = []
         for tc, content, is_error in results:
             entry: dict[str, Any] = {
@@ -167,9 +165,7 @@ class TestRunAgentHistory:
         provider = StubLLMProvider([("OK.", [])])
         client = make_mock_client()
 
-        original_history: list[dict[str, Any]] = [
-            {"role": "user", "content": "old question"}
-        ]
+        original_history: list[dict[str, Any]] = [{"role": "user", "content": "old question"}]
         original_len = len(original_history)
 
         run_agent("New question", client, provider, history=original_history)

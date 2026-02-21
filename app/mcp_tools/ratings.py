@@ -68,9 +68,7 @@ async def ratings_search_tool(
             async def vid_fetch(v: int = vid) -> dict[str, Any]:
                 return await app_ctx.nhtsa_client.ratings_by_vehicle_id(v)
 
-            detail_raw, _ = await app_ctx.caches["ratings"].get_or_fetch(
-                vid_cache_key, vid_fetch
-            )
+            detail_raw, _ = await app_ctx.caches["ratings"].get_or_fetch(vid_cache_key, vid_fetch)
             for r in detail_raw.get("Results", []):
                 detailed_results.append(_parse_rating_result(r))
 

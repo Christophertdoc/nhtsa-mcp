@@ -43,9 +43,7 @@ class LLMProvider(ABC):
         ...
 
     @abstractmethod
-    def build_tool_results(
-        self, results: list[tuple[ToolCall, str, bool]]
-    ) -> list[dict[str, Any]]:
+    def build_tool_results(self, results: list[tuple[ToolCall, str, bool]]) -> list[dict[str, Any]]:
         """Build tool result messages. Each tuple is (tool_call, content_json, is_error)."""
         ...
 
@@ -92,9 +90,7 @@ class AnthropicProvider(LLMProvider):
             )
         return {"role": "assistant", "content": content}
 
-    def build_tool_results(
-        self, results: list[tuple[ToolCall, str, bool]]
-    ) -> list[dict[str, Any]]:
+    def build_tool_results(self, results: list[tuple[ToolCall, str, bool]]) -> list[dict[str, Any]]:
         tool_results = []
         for tc, content, is_error in results:
             entry: dict[str, Any] = {
@@ -170,9 +166,7 @@ class OpenAIProvider(LLMProvider):
             ]
         return msg
 
-    def build_tool_results(
-        self, results: list[tuple[ToolCall, str, bool]]
-    ) -> list[dict[str, Any]]:
+    def build_tool_results(self, results: list[tuple[ToolCall, str, bool]]) -> list[dict[str, Any]]:
         return [
             {"role": "tool", "tool_call_id": tc.id, "content": content}
             for tc, content, _is_error in results
