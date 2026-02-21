@@ -35,6 +35,20 @@ class LLMProvider(ABC):
         """Return (text_response, tool_calls)."""
         ...
 
+    @abstractmethod
+    def build_assistant_message(
+        self, text: str | None, tool_calls: list[ToolCall]
+    ) -> dict[str, Any]:
+        """Build the assistant message in provider-native format."""
+        ...
+
+    @abstractmethod
+    def build_tool_results(
+        self, results: list[tuple[ToolCall, str, bool]]
+    ) -> list[dict[str, Any]]:
+        """Build tool result messages. Each tuple is (tool_call, content_json, is_error)."""
+        ...
+
 
 class AnthropicProvider(LLMProvider):
     def __init__(self, api_key: str, model: str) -> None:
@@ -65,6 +79,33 @@ class AnthropicProvider(LLMProvider):
                 tool_calls.append(ToolCall(id=block.id, name=block.name, arguments=block.input))
         text = "\n".join(text_parts) if text_parts else None
         return text, tool_calls
+
+    def build_assistant_message(
+        self, text: str | None, tool_calls: list[ToolCall]
+    ) -> dict[str, Any]:
+        content: list[dict[str, Any]] = []
+        if text:
+            content.append({"type": "text", "text": text})
+        for tc in tool_calls:
+            content.append(
+                {"type": "tool_use", "id": tc.id, "name": tc.name, "input": tc.arguments}
+            )
+        return {"role": "assistant", "content": content}
+
+    def build_tool_results(
+        self, results: list[tuple[ToolCall, str, bool]]
+    ) -> list[dict[str, Any]]:
+        tool_results = []
+        for tc, content, is_error in results:
+            entry: dict[str, Any] = {
+                "type": "tool_result",
+                "tool_use_id": tc.id,
+                "content": content,
+            }
+            if is_error:
+                entry["is_error"] = True
+            tool_results.append(entry)
+        return [{"role": "user", "content": tool_results}]
 
 
 class OpenAIProvider(LLMProvider):
@@ -114,6 +155,29 @@ class OpenAIProvider(LLMProvider):
                 )
         return text, tool_calls
 
+    def build_assistant_message(
+        self, text: str | None, tool_calls: list[ToolCall]
+    ) -> dict[str, Any]:
+        msg: dict[str, Any] = {"role": "assistant", "content": text or ""}
+        if tool_calls:
+            msg["tool_calls"] = [
+                {
+                    "id": tc.id,
+                    "type": "function",
+                    "function": {"name": tc.name, "arguments": json.dumps(tc.arguments)},
+                }
+                for tc in tool_calls
+            ]
+        return msg
+
+    def build_tool_results(
+        self, results: list[tuple[ToolCall, str, bool]]
+    ) -> list[dict[str, Any]]:
+        return [
+            {"role": "tool", "tool_call_id": tc.id, "content": content}
+            for tc, content, _is_error in results
+        ]
+
 
 def get_provider(settings: Settings) -> LLMProvider:
     if settings.llm_provider == "openai":
@@ -146,53 +210,22 @@ def run_agent(
         if not tool_calls:
             return text or "(No response from model)"
 
-        # Build assistant message with tool use
-        assistant_content: list[dict[str, Any]] = []
-        if text:
-            assistant_content.append({"type": "text", "text": text})
-        for tc in tool_calls:
-            assistant_content.append(
-                {
-                    "type": "tool_use",
-                    "id": tc.id,
-                    "name": tc.name,
-                    "input": tc.arguments,
-                }
-            )
-        messages.append({"role": "assistant", "content": assistant_content})
+        # Build assistant message in provider-native format
+        messages.append(provider.build_assistant_message(text, tool_calls))
 
         # Execute each tool call
-        tool_results: list[dict[str, Any]] = []
+        results: list[tuple[ToolCall, str, bool]] = []
         for tc in tool_calls:
             if tc.name not in allowed_tool_names:
-                tool_results.append(
-                    {
-                        "type": "tool_result",
-                        "tool_use_id": tc.id,
-                        "content": json.dumps({"error": f"Unknown tool: {tc.name}"}),
-                        "is_error": True,
-                    }
-                )
+                results.append((tc, json.dumps({"error": f"Unknown tool: {tc.name}"}), True))
                 continue
             try:
                 result = mcp_client.call_tool(tc.name, tc.arguments)
-                tool_results.append(
-                    {
-                        "type": "tool_result",
-                        "tool_use_id": tc.id,
-                        "content": json.dumps(result),
-                    }
-                )
+                results.append((tc, json.dumps(result), False))
             except Exception as e:
-                tool_results.append(
-                    {
-                        "type": "tool_result",
-                        "tool_use_id": tc.id,
-                        "content": json.dumps({"error": str(e)}),
-                        "is_error": True,
-                    }
-                )
+                results.append((tc, json.dumps({"error": str(e)}), True))
 
-        messages.append({"role": "user", "content": tool_results})
+        # Build tool result messages in provider-native format
+        messages.extend(provider.build_tool_results(results))
 
     return text or "(Agent reached maximum iterations without a final answer)"

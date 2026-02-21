@@ -1,5 +1,9 @@
 {
   "permissions": {
+    "deny": [
+      "Read(.env)",
+      "Read(**/.env)"
+    ],
     "allow": [
       "WebFetch(domain:vpic.nhtsa.dot.gov)",
       "WebFetch(domain:api.nhtsa.gov)",

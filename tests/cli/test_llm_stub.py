@@ -31,6 +31,33 @@ class StubLLMProvider(LLMProvider):
             return resp
         return "Done", []
 
+    def build_assistant_message(
+        self, text: str | None, tool_calls: list[ToolCall]
+    ) -> dict[str, Any]:
+        content: list[dict[str, Any]] = []
+        if text:
+            content.append({"type": "text", "text": text})
+        for tc in tool_calls:
+            content.append(
+                {"type": "tool_use", "id": tc.id, "name": tc.name, "input": tc.arguments}
+            )
+        return {"role": "assistant", "content": content}
+
+    def build_tool_results(
+        self, results: list[tuple[ToolCall, str, bool]]
+    ) -> list[dict[str, Any]]:
+        tool_results = []
+        for tc, content, is_error in results:
+            entry: dict[str, Any] = {
+                "type": "tool_result",
+                "tool_use_id": tc.id,
+                "content": content,
+            }
+            if is_error:
+                entry["is_error"] = True
+            tool_results.append(entry)
+        return [{"role": "user", "content": tool_results}]
+
 
 def make_mock_client(tool_results: dict[str, Any] | None = None) -> MCPClient:
     """Create a mock MCPClient."""
