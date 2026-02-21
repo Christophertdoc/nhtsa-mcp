@@ -10,12 +10,12 @@ Tasks are ordered by dependency. Complete them roughly in sequence; tasks within
 
 | # | Task | Status |
 |---|---|---|
-| 1 | Set up pyproject.toml and uv project | pending |
-| 2 | Implement `app/config.py` | pending |
-| 3 | Implement `app/models/inputs.py` and `outputs.py` | pending |
-| 4 | Implement `app/nhtsa_clients/` (base, vpic, api) | pending |
-| 5 | Implement all 10 MCP tools in `app/mcp_tools/` | pending |
-| 6 | Implement `app/main.py` (FastMCP + FastAPI lifespan) | pending |
+| 1 | Set up pyproject.toml and uv project | done |
+| 2 | Implement `app/config.py` | done |
+| 3 | Implement `app/models/inputs.py` and `outputs.py` | done |
+| 4 | Implement `app/nhtsa_clients/` (base, vpic, api) | done |
+| 5 | Implement all 10 MCP tools in `app/mcp_tools/` | done |
+| 6 | Implement `app/main.py` (FastMCP + FastAPI lifespan) | done |
 
 **Acceptance criteria:** `decode_vin("1FA6P8AM0G5227539")` returns correct make/model/year; all 10 tools respond; invalid VINs return 400; `pytest tests/unit/ -v` passes.
 
@@ -25,9 +25,9 @@ Tasks are ordered by dependency. Complete them roughly in sequence; tasks within
 
 | # | Task | Status |
 |---|---|---|
-| 7 | Implement `app/security/` (rate_limiter, sanitizer, cache) | pending |
-| 8 | Implement structured logging and error handler middleware | pending |
-| 9 | Write unit tests (`tests/unit/`) | pending |
+| 7 | Implement `app/security/` (rate_limiter, sanitizer, cache) | done |
+| 8 | Implement structured logging and error handler middleware | done |
+| 9 | Write unit tests (`tests/unit/`) | done |
 
 **Acceptance criteria:** 11th VIN call → 429 with `Retry-After`; upstream 5xx → 502 (no stack trace); cache hit on second identical call (upstream called once).
 
@@ -37,8 +37,8 @@ Tasks are ordered by dependency. Complete them roughly in sequence; tasks within
 
 | # | Task | Status |
 |---|---|---|
-| 10 | Implement CLI (`cli/main.py`, `mcp_client.py`, `llm_agent.py`) | pending |
-| 11 | Write CLI tests (`tests/cli/`) | pending |
+| 10 | Implement CLI (`cli/main.py`, `mcp_client.py`, `llm_agent.py`) | done |
+| 11 | Write CLI tests (`tests/cli/`) | done |
 
 **Acceptance criteria:** All `nhtsa-cli tool` subcommands work against running server; `agent ask` produces coherent answer using tool data; circuit breaker fires at max_iterations; unknown tool names blocked.
 
@@ -48,8 +48,8 @@ Tasks are ordered by dependency. Complete them roughly in sequence; tasks within
 
 | # | Task | Status |
 |---|---|---|
-| 12 | Write integration tests (`tests/integration/`) | pending |
-| 13 | Production polish: mypy, ruff, coverage ≥85%, README, CLAUDE.md | pending |
+| 12 | Write integration tests (`tests/integration/`) | done |
+| 13 | Production polish: mypy, ruff, coverage ≥85%, README, CLAUDE.md | done |
 
 **Acceptance criteria:** mypy strict passing; ruff clean; coverage ≥ 85%; README and CLAUDE.md fully updated.
 

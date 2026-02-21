@@ -4,7 +4,20 @@
       "WebFetch(domain:vpic.nhtsa.dot.gov)",
       "WebFetch(domain:api.nhtsa.gov)",
       "WebSearch",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(uv sync:*)",
+      "Bash(~/.local/bin/uv:*)",
+      "Bash(~/.cargo/bin/uv:*)",
+      "Bash(export PATH=\"$HOME/.local/bin:$PATH\")",
+      "Bash(uv run ruff check:*)",
+      "Bash(uv run ruff format:*)",
+      "Bash(uv run pytest:*)",
+      "Bash(uv run python -c \":*)",
+      "Bash(uv run python:*)",
+      "Bash(uv run:*)",
+      "Bash(curl:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)"
     ]
   }
 }
