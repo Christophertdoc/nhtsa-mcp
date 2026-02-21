@@ -62,7 +62,7 @@ uv run nhtsa-cli tool recalls 2020 Toyota Camry
 uv run nhtsa-cli tool complaints 2020 Toyota Camry
 uv run nhtsa-cli tool carseat --zip 20001
 
-# LLM agent (requires ANTHROPIC_API_KEY in .env)
+# LLM agent (requires api key in .env)
 uv run nhtsa-cli agent ask "What are the safety ratings for a 2020 Toyota Camry?"
 uv run nhtsa-cli agent demo
 ```
