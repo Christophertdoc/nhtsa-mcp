@@ -56,14 +56,35 @@ async def ratings_search_tool(
     raw, cache_hit = await app_ctx.caches["ratings"].get_or_fetch(cache_key, fetch)
     app_ctx.rate_limiter.record(ip_hash)
 
-    results = [_parse_rating_result(r) for r in raw.get("Results", [])]
+    # Step 2: fetch detailed ratings for each variant
+    variants = raw.get("Results", [])
+    detailed_results: list[SafetyRatingResult] = []
+
+    for variant in variants:
+        vid = variant.get("VehicleId")
+        if vid:
+            vid_cache_key = f"ratings_id:{vid}"
+
+            async def vid_fetch(v: int = vid) -> dict[str, Any]:
+                return await app_ctx.nhtsa_client.ratings_by_vehicle_id(v)
+
+            detail_raw, _ = await app_ctx.caches["ratings"].get_or_fetch(
+                vid_cache_key, vid_fetch
+            )
+            for r in detail_raw.get("Results", []):
+                detailed_results.append(_parse_rating_result(r))
+
+    # Fall back to Step 1 data if no variants had IDs
+    if not detailed_results:
+        detailed_results = [_parse_rating_result(r) for r in variants]
+
     return ToolResponse[SafetyRatingResult](
         summary={
             "query": f"{validated.model_year} {validated.make} {validated.model}",
-            "count": len(results),
+            "count": len(detailed_results),
             "cache_hit": cache_hit,
         },
-        results=results,
+        results=detailed_results,
         raw_response=raw if app_ctx.settings.include_raw_response else None,
     ).model_dump()
 

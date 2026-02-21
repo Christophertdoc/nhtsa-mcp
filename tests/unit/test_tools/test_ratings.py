@@ -18,11 +18,24 @@ from app.security.rate_limiter import RateLimiter
 VPIC_BASE = "https://vpic.nhtsa.dot.gov/api"
 NHTSA_BASE = "https://api.nhtsa.gov"
 
-SAMPLE_RATINGS = {
+SAMPLE_VARIANTS = {
     "Results": [
         {
             "VehicleId": 12345,
-            "VehicleDescription": "2020 Toyota Camry",
+            "VehicleDescription": "2020 Toyota Camry 4 DR FWD",
+        },
+        {
+            "VehicleId": 12346,
+            "VehicleDescription": "2020 Toyota Camry 4 DR AWD",
+        },
+    ]
+}
+
+SAMPLE_DETAIL_12345 = {
+    "Results": [
+        {
+            "VehicleId": 12345,
+            "VehicleDescription": "2020 Toyota Camry 4 DR FWD",
             "OverallRating": "5",
             "OverallFrontCrashRating": "5",
             "OverallSideCrashRating": "5",
@@ -33,6 +46,25 @@ SAMPLE_RATINGS = {
         }
     ]
 }
+
+SAMPLE_DETAIL_12346 = {
+    "Results": [
+        {
+            "VehicleId": 12346,
+            "VehicleDescription": "2020 Toyota Camry 4 DR AWD",
+            "OverallRating": "4",
+            "OverallFrontCrashRating": "4",
+            "OverallSideCrashRating": "5",
+            "RolloverRating": "3",
+            "ComplaintsCount": 5,
+            "RecallsCount": 1,
+            "InvestigationCount": 0,
+        }
+    ]
+}
+
+# Used for ratings_by_vehicle_id_tool tests
+SAMPLE_RATINGS = SAMPLE_DETAIL_12345
 
 
 def make_ctx(app_ctx):
@@ -68,16 +100,50 @@ class TestRatingsSearch:
     @respx.mock
     @pytest.mark.asyncio
     async def test_success(self, app_ctx):
+        # Step 1: variant listing
         respx.get(f"{NHTSA_BASE}/SafetyRatings/modelyear/2020/make/Toyota/model/Camry").mock(
-            return_value=httpx.Response(200, json=SAMPLE_RATINGS)
+            return_value=httpx.Response(200, json=SAMPLE_VARIANTS)
+        )
+        # Step 2: detailed ratings per variant
+        respx.get(f"{NHTSA_BASE}/SafetyRatings/VehicleId/12345").mock(
+            return_value=httpx.Response(200, json=SAMPLE_DETAIL_12345)
+        )
+        respx.get(f"{NHTSA_BASE}/SafetyRatings/VehicleId/12346").mock(
+            return_value=httpx.Response(200, json=SAMPLE_DETAIL_12346)
         )
         from app.mcp_tools.ratings import ratings_search_tool
 
         ctx = make_ctx(app_ctx)
         result = await ratings_search_tool(ctx, model_year=2020, make="Toyota", model="Camry")
-        assert result["summary"]["count"] == 1
-        assert result["results"][0]["overall_rating"] == "5"
+        assert result["summary"]["count"] == 2
         assert result["results"][0]["vehicle_id"] == 12345
+        assert result["results"][0]["overall_rating"] == "5"
+        assert result["results"][1]["vehicle_id"] == 12346
+        assert result["results"][1]["overall_rating"] == "4"
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_caches_vehicle_id_results(self, app_ctx):
+        """Step 2 results are cached so ratings_by_vehicle_id_tool can reuse them."""
+        respx.get(f"{NHTSA_BASE}/SafetyRatings/modelyear/2020/make/Toyota/model/Camry").mock(
+            return_value=httpx.Response(200, json=SAMPLE_VARIANTS)
+        )
+        respx.get(f"{NHTSA_BASE}/SafetyRatings/VehicleId/12345").mock(
+            return_value=httpx.Response(200, json=SAMPLE_DETAIL_12345)
+        )
+        respx.get(f"{NHTSA_BASE}/SafetyRatings/VehicleId/12346").mock(
+            return_value=httpx.Response(200, json=SAMPLE_DETAIL_12346)
+        )
+        from app.mcp_tools.ratings import ratings_search_tool
+
+        ctx = make_ctx(app_ctx)
+        await ratings_search_tool(ctx, model_year=2020, make="Toyota", model="Camry")
+
+        # Verify the cache now has the vehicle ID entries
+        cached, _ = await app_ctx.caches["ratings"].get_or_fetch(
+            "ratings_id:12345", lambda: None
+        )
+        assert cached["Results"][0]["OverallRating"] == "5"
 
 
 class TestRatingsByVehicleId:

@@ -230,7 +230,7 @@ def carseat(
 @agent_app.command()
 def ask(
     question: str,
-    provider: Annotated[str, typer.Option("--provider", "-p")] = "anthropic",
+    provider: Annotated[str | None, typer.Option("--provider", "-p")] = None,
     max_steps: Annotated[int, typer.Option("--max-steps")] = 10,
     url: ServerUrl = DEFAULT_URL,
 ) -> None:
@@ -238,7 +238,7 @@ def ask(
     from app.config import Settings
     from cli.llm_agent import get_provider, run_agent
 
-    settings = Settings(llm_provider=provider)
+    settings = Settings(**({"llm_provider": provider} if provider else {}))
     llm = get_provider(settings)
     client = _client(url)
 
