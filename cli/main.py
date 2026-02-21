@@ -243,7 +243,7 @@ def ask(
     client = _client(url)
 
     try:
-        answer = run_agent(question, client, llm, max_iterations=max_steps)
+        answer, _ = run_agent(question, client, llm, max_iterations=max_steps)
         typer.echo(answer)
     except Exception as e:
         typer.echo(f"Error: {e}", err=True)
@@ -271,7 +271,46 @@ def demo(url: ServerUrl = DEFAULT_URL) -> None:
         typer.echo(f"Demo {i}/{len(questions)}: {q}")
         typer.echo("=" * 60)
         try:
-            answer = run_agent(q, client, llm, max_iterations=10)
+            answer, _ = run_agent(q, client, llm, max_iterations=10)
+            typer.echo(answer)
+        except Exception as e:
+            typer.echo(f"Error: {e}", err=True)
+
+
+@agent_app.command()
+def chat(
+    provider: Annotated[str | None, typer.Option("--provider", "-p")] = None,
+    max_steps: Annotated[int, typer.Option("--max-steps")] = 10,
+    url: ServerUrl = DEFAULT_URL,
+) -> None:
+    """Start an interactive chat session with the LLM agent."""
+    from app.config import Settings
+    from cli.llm_agent import get_provider, run_agent
+
+    settings = Settings(**({"llm_provider": provider} if provider else {}))
+    llm = get_provider(settings)
+    client = _client(url)
+    history: list[dict[str, object]] = []
+
+    typer.echo("NHTSA Agent Chat (type 'exit' or 'quit' to end)")
+    while True:
+        try:
+            question = input(">>> ")
+        except (EOFError, KeyboardInterrupt):
+            typer.echo("\nGoodbye!")
+            break
+
+        question = question.strip()
+        if not question:
+            continue
+        if question.lower() in ("exit", "quit"):
+            typer.echo("Goodbye!")
+            break
+
+        try:
+            answer, history = run_agent(
+                question, client, llm, max_iterations=max_steps, history=history
+            )
             typer.echo(answer)
         except Exception as e:
             typer.echo(f"Error: {e}", err=True)

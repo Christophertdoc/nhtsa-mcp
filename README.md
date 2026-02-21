@@ -64,6 +64,7 @@ uv run nhtsa-cli tool carseat --zip 20001
 
 # LLM agent (requires api key in .env)
 uv run nhtsa-cli agent ask "What are the safety ratings for a 2020 Toyota Camry?"
+uv run nhtsa-cli agent chat   # interactive REPL session
 uv run nhtsa-cli agent demo
 ```
 

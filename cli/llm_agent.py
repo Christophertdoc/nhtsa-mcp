@@ -196,19 +196,21 @@ def run_agent(
     mcp_client: MCPClient,
     provider: LLMProvider,
     max_iterations: int = 10,
-) -> str:
-    """Run the tool-calling agent loop. Returns final text answer."""
+    history: list[dict[str, Any]] | None = None,
+) -> tuple[str, list[dict[str, Any]]]:
+    """Run the tool-calling agent loop. Returns (answer, messages)."""
     # Get available tools
     tools_raw = mcp_client.list_tools()
     allowed_tool_names = {t["name"] for t in tools_raw}
 
-    messages: list[dict[str, Any]] = [{"role": "user", "content": question}]
+    messages: list[dict[str, Any]] = list(history) if history else []
+    messages.append({"role": "user", "content": question})
 
     for _iteration in range(max_iterations):
         text, tool_calls = provider.complete_with_tools(messages, tools_raw, SYSTEM_PROMPT)
 
         if not tool_calls:
-            return text or "(No response from model)"
+            return text or "(No response from model)", messages
 
         # Build assistant message in provider-native format
         messages.append(provider.build_assistant_message(text, tool_calls))
@@ -228,4 +230,4 @@ def run_agent(
         # Build tool result messages in provider-native format
         messages.extend(provider.build_tool_results(results))
 
-    return text or "(Agent reached maximum iterations without a final answer)"
+    return text or "(Agent reached maximum iterations without a final answer)", messages

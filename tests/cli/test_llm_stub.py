@@ -83,7 +83,7 @@ class TestRunAgent:
             ]
         )
         client = make_mock_client()
-        answer = run_agent("Decode this VIN", client, provider)
+        answer, _ = run_agent("Decode this VIN", client, provider)
         assert "Ford Mustang" in answer
         client.call_tool.assert_called_once_with("decode_vin_tool", {"vin": VIN})
 
@@ -103,7 +103,7 @@ class TestRunAgent:
         ]
         provider = StubLLMProvider(infinite_calls)
         client = make_mock_client()
-        run_agent("Decode this", client, provider, max_iterations=3)
+        run_agent("Decode this", client, provider, max_iterations=3)  # returns tuple
         assert client.call_tool.call_count == 3
 
     def test_unknown_tool_blocked(self):
@@ -114,7 +114,7 @@ class TestRunAgent:
             ]
         )
         client = make_mock_client()
-        run_agent("Do something", client, provider)
+        run_agent("Do something", client, provider)  # returns tuple
         client.call_tool.assert_not_called()
 
     def test_no_tool_calls_returns_text(self):
@@ -124,7 +124,7 @@ class TestRunAgent:
             ]
         )
         client = make_mock_client()
-        answer = run_agent("What is NHTSA?", client, provider)
+        answer, _ = run_agent("What is NHTSA?", client, provider)
         assert answer == "Here is the answer directly."
 
     def test_tool_error_handled(self):
@@ -137,5 +137,40 @@ class TestRunAgent:
         )
         client = make_mock_client()
         client.call_tool.side_effect = Exception("Connection refused")
-        answer = run_agent("Decode BAD vin", client, provider)
+        answer, _ = run_agent("Decode BAD vin", client, provider)
         assert "error" in answer.lower() or "Sorry" in answer
+
+
+class TestRunAgentHistory:
+    def test_multi_turn_history(self):
+        """History from turn 1 is available in turn 2."""
+        provider = StubLLMProvider(
+            [
+                ("Answer to first question.", []),
+                ("Answer referencing history.", []),
+            ]
+        )
+        client = make_mock_client()
+
+        answer1, history = run_agent("First question", client, provider)
+        assert answer1 == "Answer to first question."
+        assert len(history) >= 1
+
+        answer2, history2 = run_agent("Follow-up", client, provider, history=history)
+        assert answer2 == "Answer referencing history."
+        # history2 should contain messages from both turns
+        user_msgs = [m for m in history2 if m.get("role") == "user"]
+        assert len(user_msgs) == 2
+
+    def test_history_not_mutated(self):
+        """Passing history should not mutate the caller's list."""
+        provider = StubLLMProvider([("OK.", [])])
+        client = make_mock_client()
+
+        original_history: list[dict[str, Any]] = [
+            {"role": "user", "content": "old question"}
+        ]
+        original_len = len(original_history)
+
+        run_agent("New question", client, provider, history=original_history)
+        assert len(original_history) == original_len

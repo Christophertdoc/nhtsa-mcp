@@ -38,6 +38,7 @@ class TestCLIRegistration:
         assert result.exit_code == 0
         assert "ask" in result.output
         assert "demo" in result.output
+        assert "chat" in result.output
 
 
 class TestCLIErrors:
