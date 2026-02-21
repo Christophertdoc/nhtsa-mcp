@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     bulk_vin_max: int = 5
 
     # LLM (for CLI agent)
-    llm_provider: str = "anthropic"
+    llm_provider: str = "openai"
     anthropic_api_key: str = ""
     openai_api_key: str = ""
     llm_model_anthropic: str = "claude-opus-4-6"
