@@ -4,7 +4,7 @@ An MCP (Model Context Protocol) server providing structured access to NHTSA (Nat
 
 ## Features
 
-- 10 MCP tools covering 5 NHTSA API surfaces
+- 20 MCP tools covering 5 NHTSA API surfaces + full vPIC endpoint coverage
 - Strict Pydantic v2 input validation
 - In-memory TTL caching per domain
 - Per-IP sliding window rate limiting
@@ -26,6 +26,16 @@ An MCP (Model Context Protocol) server providing structured access to NHTSA (Nat
 | `carseat_stations_by_zip_tool` | Find car seat inspection stations by ZIP |
 | `carseat_stations_by_state_tool` | Find stations by state code |
 | `carseat_stations_by_geo_tool` | Find stations by lat/long/radius |
+| `decode_wmi_tool` | Decode a World Manufacturer Identifier (WMI) |
+| `decode_vin_batch_tool` | Batch decode up to 50 VINs in one request |
+| `get_all_makes_tool` | List all vehicle makes registered with NHTSA |
+| `get_makes_tool` | Get makes by manufacturer, vehicle type, and/or year |
+| `get_manufacturers_tool` | Look up manufacturers, details, or WMIs |
+| `get_models_tool` | Get models for a make, optionally filtered by year/type |
+| `get_vehicle_types_tool` | Get vehicle types for a make |
+| `get_vehicle_variables_tool` | List VIN decode variables or get variable values |
+| `get_parts_tool` | Search NHTSA parts (tires/rims) by date range |
+| `get_equipment_plant_codes_tool` | Get equipment plant codes by year and type |
 
 ## Quick Start
 
@@ -94,6 +104,6 @@ uv run mypy app/ cli/
 - `app/config.py` — pydantic-settings configuration
 - `app/models/` — Pydantic v2 input validators and output types
 - `app/nhtsa_clients/` — Typed HTTP clients with retry, semaphore, path allowlist
-- `app/mcp_tools/` — 10 MCP tool implementations
+- `app/mcp_tools/` — 20 MCP tool implementations
 - `app/security/` — Rate limiter, output sanitizer, async TTL cache
 - `cli/` — Typer CLI, MCP client wrapper, LLM agent

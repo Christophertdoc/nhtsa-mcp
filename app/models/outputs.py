@@ -86,3 +86,73 @@ class CarseatStationResult(BaseModel):
     longitude: float | None = None
     distance_miles: float | None = None
     url: str = ""
+
+
+# --- vPIC result types ---
+
+
+class WMIResult(BaseModel):
+    common_name: str = ""
+    make_name: str = ""
+    manufacturer_name: str = ""
+    vehicle_type: str = ""
+    wmi: str = ""
+
+
+class ManufacturerResult(BaseModel):
+    manufacturer_id: int | None = None
+    name: str = ""
+    common_name: str = ""
+    country: str = ""
+    vehicle_types: list[dict[str, Any]] = []
+
+
+class ManufacturerWMIResult(BaseModel):
+    wmi: str = ""
+    name: str = ""
+    vehicle_type: str = ""
+    country: str = ""
+
+
+class MakeResult(BaseModel):
+    make_id: int | None = None
+    make_name: str = ""
+    manufacturer_name: str = ""
+
+
+class ModelResult(BaseModel):
+    make_id: int | None = None
+    make_name: str = ""
+    model_id: int | None = None
+    model_name: str = ""
+
+
+class VehicleTypeResult(BaseModel):
+    vehicle_type_id: int | None = None
+    vehicle_type_name: str = ""
+
+
+class VehicleVariableResult(BaseModel):
+    variable_id: int | None = None
+    variable_name: str = ""
+    group_name: str = ""
+    description: str = ""
+    values: list[dict[str, Any]] = []
+
+
+class PartsResult(BaseModel):
+    manufacturer: str = ""
+    name: str = ""
+    url: str = ""
+    letter_date: str = ""
+    type_code: str = ""
+
+
+class EquipmentPlantResult(BaseModel):
+    dot_code: str = ""
+    plant_city: str = ""
+    plant_state: str = ""
+    plant_country: str = ""
+    name: str = ""
+    state_code: str = ""
+    equipment_type: str = ""
