@@ -308,9 +308,13 @@ def chat(
             break
 
         try:
-            answer, history = run_agent(
-                question, client, llm, max_iterations=max_steps, history=history
-            )
+            from rich.console import Console
+
+            console = Console()
+            with console.status("Retrieving NHTSA data…", spinner="dots"):
+                answer, history = run_agent(
+                    question, client, llm, max_iterations=max_steps, history=history
+                )
             typer.echo(answer)
         except Exception as e:
             typer.echo(f"Error: {e}", err=True)

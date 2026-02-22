@@ -77,10 +77,9 @@ This opens a `>>>` prompt where you can ask questions. The agent will automatica
 >>> Are there any recalls on a 2021 Ford Mustang?
 >>> What are the crash test ratings for a 2023 Toyota Camry?
 >>> What models does Honda make?
->>> Show me complaints for 2020 Chevrolet Silverado
->>> What manufacturers produce motorcycles?
->>> Find car seat inspection stations near ZIP 90210
->>> What tire manufacturers have plant codes for 2024?
+>>> Show me complaints for 2012 Toyota Corolla
+>>> Find car seat inspection stations near ZIP 63640
+>>> Find rim manufacturers that registered parts between 3/1/2023 and 12/31/2023
 ```
 
 **Exiting the chat:** Type `exit` or `quit` at the prompt, or press `Ctrl+C`.
