@@ -1,7 +1,7 @@
 Output demo.gif
 
 Set Shell "zsh"
-Set FontSize 16
+Set FontSize 20
 Set Width 1200
 Set Height 600
 Set TypingSpeed 50ms
