@@ -2,6 +2,8 @@
 
 An MCP (Model Context Protocol) server providing structured access to NHTSA (National Highway Traffic Safety Administration) APIs — covering vehicle identification (VIN/WMI decoding), safety ratings, recalls, consumer complaints, manufacturer and model data, parts, and car seat inspection stations.
 
+![Demo](demo.gif)
+
 ## Features
 
 - 20 MCP tools covering 5 NHTSA API surfaces + full vPIC endpoint coverage
@@ -77,7 +79,7 @@ This opens a `>>>` prompt where you can ask questions. The agent will automatica
 >>> Are there any recalls on a 2021 Ford Mustang?
 >>> What are the crash test ratings for a 2023 Toyota Camry?
 >>> What models does Honda make?
->>> Show me complaints for 2012 Toyota Corolla
+>>> Show me complaints for a 2012 Toyota Corolla
 >>> Find car seat inspection stations near ZIP 63640
 >>> Find rim manufacturers that registered parts between 3/1/2023 and 12/31/2023
 ```
