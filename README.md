@@ -1,6 +1,6 @@
 # NHTSA MCP Server
 
-An MCP (Model Context Protocol) server providing structured access to NHTSA (National Highway Traffic Safety Administration) vehicle safety APIs.
+An MCP (Model Context Protocol) server providing structured access to NHTSA (National Highway Traffic Safety Administration) APIs — covering vehicle identification (VIN/WMI decoding), safety ratings, recalls, consumer complaints, manufacturer and model data, parts, and car seat inspection stations.
 
 ## Features
 
@@ -50,6 +50,9 @@ cp .env.example .env  # edit to add API keys if using LLM agent
 # Start the server
 uv run uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 
+# Begin chat session.
+uv run nhtsa-cli agent chat   # interactive REPL session
+
 # Health check
 curl http://127.0.0.1:8000/health
 
@@ -57,25 +60,54 @@ curl http://127.0.0.1:8000/health
 uv run nhtsa-mcp --transport stdio
 ```
 
-## CLI Usage
+## Chat Session
+
+The primary way to interact with the NHTSA data is through the interactive chat session. It connects you to an LLM agent that has access to all MCP tools and can answer questions about vehicle identification, safety, recalls, complaints, manufacturers, models, and more in natural language.
 
 ```bash
-# Server commands
-uv run nhtsa-cli server health
-uv run nhtsa-cli server list-tools
-uv run nhtsa-cli server start --port 8000 --reload
+uv run nhtsa-cli agent chat
+```
 
-# Tool commands (requires running server)
+This opens a `>>>` prompt where you can ask questions. The agent will automatically call the right NHTSA tools, combine data from multiple sources, and respond with a summary. Your conversation history is preserved across questions within the same session, so you can ask follow-up questions.
+
+**Example questions:**
+
+```
+>>> Decode VIN 4S4BL86C764213492 and tell me about that vehicle
+>>> Are there any recalls on a 2021 Ford Mustang?
+>>> What are the crash test ratings for a 2023 Toyota Camry?
+>>> What models does Honda make?
+>>> Show me complaints for 2020 Chevrolet Silverado
+>>> What manufacturers produce motorcycles?
+>>> Find car seat inspection stations near ZIP 90210
+>>> What tire manufacturers have plant codes for 2024?
+```
+
+**Exiting the chat:** Type `exit` or `quit` at the prompt, or press `Ctrl+C`.
+
+You can also ask a single one-off question without entering the interactive session:
+
+```bash
+uv run nhtsa-cli agent ask "What are the safety ratings for a 2020 Toyota Camry?"
+```
+
+### Other CLI Commands
+
+```bash
+# Run a preset demo of the agent
+uv run nhtsa-cli agent demo
+
+# Direct tool commands (requires running server)
 uv run nhtsa-cli tool decode-vin 1FA6P8AM0G5227539
 uv run nhtsa-cli tool ratings-search 2020 Toyota Camry
 uv run nhtsa-cli tool recalls 2020 Toyota Camry
 uv run nhtsa-cli tool complaints 2020 Toyota Camry
 uv run nhtsa-cli tool carseat --zip 20001
 
-# LLM agent (requires api key in .env)
-uv run nhtsa-cli agent ask "What are the safety ratings for a 2020 Toyota Camry?"
-uv run nhtsa-cli agent chat   # interactive REPL session
-uv run nhtsa-cli agent demo
+# Server commands
+uv run nhtsa-cli server health
+uv run nhtsa-cli server list-tools
+uv run nhtsa-cli server start --port 8000 --reload
 ```
 
 ## Development
