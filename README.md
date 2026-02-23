@@ -75,13 +75,13 @@ This opens a `>>>` prompt where you can ask questions. The agent will automatica
 **Example questions:**
 
 ```
->>> Decode VIN 4S4BL86C764213492 and tell me about that vehicle
+>>> Decode VIN 4S4BL86C764213492 and tell me if there are any recalls for the vehicle
 >>> Are there any recalls on a 2021 Ford Mustang?
 >>> What are the crash test ratings for a 2023 Toyota Camry?
 >>> What models does Honda make?
 >>> Show me complaints for a 2012 Toyota Corolla
 >>> Find car seat inspection stations near ZIP 63640
->>> Find rim manufacturers that registered parts between 3/1/2023 and 12/31/2023
+>>> Find rim manufacturers that registered parts between 3/1/2023 and 12/31/2023. Show me just the first result.
 ```
 
 **Exiting the chat:** Type `exit` or `quit` at the prompt, or press `Ctrl+C`.
